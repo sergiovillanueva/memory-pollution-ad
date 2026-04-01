@@ -1,0 +1,12 @@
+# Install PyTorch first (choose CUDA/CPU wheel that matches your system):
+#   CUDA (example): pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+#   CPU-only:       pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torch>=2.1.0
+torchvision>=0.16.0
+transformers>=4.40.0
+scikit-learn
+scipy
+numpy
+pandas
+matplotlib
+Pillow

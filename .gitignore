@@ -1,0 +1,35 @@
+# Data and caches
+data/
+output/feature_cache/
+output/figures/
+output/paper_tables/
+
+# Large binary files
+*.npy
+*.pt
+*.pth
+*.ckpt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Environment
+.env
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
