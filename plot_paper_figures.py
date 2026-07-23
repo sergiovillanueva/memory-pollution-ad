@@ -116,17 +116,24 @@ def plot_fig2_pareto():
 
         # Label only Table 1 configs
         if in_table:
-            label = cfg.replace("coreset_", "cs").replace("km100_res", "km+r")
-            label = label.replace("k50", "km50") if cfg == "k50" else label
+            label = cfg  # Use same names as Table 1
             offset = (4, 3)
+            fontsize = 5.5
             if cfg == "baseline":
                 offset = (-8, -10)
+                fontsize = 6
             elif cfg == "coreset_500":
                 offset = (4, -8)
             elif cfg == "k500":
                 offset = (4, -8)
+            elif cfg == "km100_res400":
+                offset = (4, 4)
+            elif cfg == "coreset_100":
+                offset = (-4, 5)
+            elif cfg == "coreset_200":
+                offset = (4, 4)
             ax.annotate(
-                label, (mem, auroc), fontsize=6.5,
+                label, (mem, auroc), fontsize=fontsize,
                 textcoords="offset points", xytext=offset,
                 color=color, alpha=0.9,
             )
@@ -184,10 +191,10 @@ def plot_fig3_oracle_inversion():
     top1_uni_std = d18[(d18["routing_mode"] == "top_1") & (d18["allocator"] == "uniform")]["img_auroc_std"].values[0]
     top1_ora_std = d18[(d18["routing_mode"] == "top_1") & (d18["allocator"] == "oracle")]["img_auroc_std"].values[0]
 
-    fig, ax = plt.subplots(figsize=(3.5, 2.8))
+    fig, ax = plt.subplots(figsize=(4.0, 3.2))
 
-    x = np.array([0, 1.2])
-    width = 0.35
+    x = np.array([0, 1.4])
+    width = 0.38
 
     bars_uni = ax.bar(
         x - width / 2,
@@ -206,43 +213,46 @@ def plot_fig3_oracle_inversion():
         capsize=3, error_kw={"linewidth": 0.7},
     )
 
-    # Value labels on bars
-    for bar_group in [bars_uni, bars_ora]:
-        for bar in bar_group:
-            h = bar.get_height()
-            ax.text(
-                bar.get_x() + bar.get_width() / 2, h + 0.002,
-                f"{h:.3f}", ha="center", va="bottom", fontsize=7,
-            )
+    # Value labels above error bars
+    for bar, std in zip(bars_uni, [global_uni_std, top1_uni_std]):
+        h = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2, h + std + 0.001,
+            f"{h:.3f}", ha="center", va="bottom", fontsize=7,
+        )
+    for bar, std in zip(bars_ora, [global_ora_std, top1_ora_std]):
+        h = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2, h + std + 0.001,
+            f"{h:.3f}", ha="center", va="bottom", fontsize=7,
+        )
 
-    # Delta annotations
+    # Delta annotations — placed clearly below the bars
     delta_global = (global_ora - global_uni) * 100
     delta_top1 = (top1_ora - top1_uni) * 100
 
-    mid_global = (global_uni + global_ora) / 2
-    mid_top1 = (top1_uni + top1_ora) / 2
-
     ax.annotate(
         f"$\\Delta$ = {delta_global:+.1f} pp",
-        xy=(0, mid_global - 0.003), fontsize=8, fontweight="bold",
+        xy=(0, 0.920), fontsize=8, fontweight="bold",
         ha="center", color="#8B0000",
     )
     ax.annotate(
         f"$\\Delta$ = {delta_top1:+.1f} pp",
-        xy=(1.2, mid_top1 + 0.006), fontsize=8, fontweight="bold",
+        xy=(1.4, 0.925), fontsize=8, fontweight="bold",
         ha="center", color="#006400",
     )
 
     ax.set_xticks(x)
     ax.set_xticklabels(["Global retrieval", "Top-1 routed"], fontsize=9)
     ax.set_ylabel("Image AUROC")
-    ax.set_ylim(0.885, 0.922)
+    ax.set_ylim(0.883, 0.932)
     ax.legend(loc="upper left", framealpha=0.8, borderpad=0.3)
     ax.grid(axis="y", alpha=0.2, linewidth=0.4)
     ax.set_axisbelow(True)
 
     # Title as text (cleaner for journal)
     ax.set_title("Budget = 18 MB, MVTec AD (15 products, 3 seeds)", fontsize=8, style="italic")
+    fig.tight_layout()
 
     fig.savefig(PLOT_DIR / "fig3_oracle_inversion.pdf")
     fig.savefig(PLOT_DIR / "fig3_oracle_inversion.png")
@@ -301,13 +311,22 @@ def plot_fig4_wnr_scatter():
         wnr_vals.append(wnr_mean[short])
         delta_vals.append((t1_uni_auroc[task] - g_uni_auroc[task]) * 100)  # in pp
 
-    fig, ax = plt.subplots(figsize=(3.5, 2.8))
+    fig, ax = plt.subplots(figsize=(4.0, 3.2))
     ax.scatter(wnr_vals, delta_vals, s=30, color="#4878CF", edgecolors="black",
                linewidths=0.4, zorder=3)
 
+    # Manual offsets for overlapping labels
+    label_offsets = {
+        "leather": (-6, -10), "zipper": (4, -10),
+        "carpet": (-6, 6), "cable": (4, 6),
+        "tile": (-2, -10), "bottle": (4, -10),
+        "capsule": (4, 5), "pill": (4, 5),
+        "toothbrush": (4, -10), "hazelnut": (-30, 5),
+    }
     for i, p in enumerate(products):
+        offset = label_offsets.get(p, (4, 3))
         ax.annotate(p, (wnr_vals[i], delta_vals[i]), fontsize=5.5,
-                    textcoords="offset points", xytext=(3, 3), alpha=0.8)
+                    textcoords="offset points", xytext=offset, alpha=0.8)
 
     # Trend line
     if len(wnr_vals) > 2:
@@ -317,7 +336,7 @@ def plot_fig4_wnr_scatter():
 
         # Pearson correlation
         corr = np.corrcoef(wnr_vals, delta_vals)[0, 1]
-        ax.text(0.95, 0.05, f"r = {corr:.2f}", transform=ax.transAxes,
+        ax.text(0.95, 0.30, f"r = {corr:.2f}", transform=ax.transAxes,
                 fontsize=7, ha="right", va="bottom", style="italic", color="gray")
 
     ax.axhline(0, color="black", linewidth=0.3, alpha=0.3)
@@ -325,6 +344,7 @@ def plot_fig4_wnr_scatter():
     ax.set_ylabel(r"$\Delta$AUROC: routed $-$ global (pp)")
     ax.set_title("Per-product routing gain vs. pollution\n(18 MB, uniform, 3 seeds)", fontsize=8, style="italic")
     ax.grid(True, alpha=0.2, linewidth=0.4)
+    fig.tight_layout()
 
     fig.savefig(PLOT_DIR / "fig4_wnr_scatter.pdf")
     fig.savefig(PLOT_DIR / "fig4_wnr_scatter.png")
