@@ -1,20 +1,29 @@
-# Memory Pollution in Multi-Product Anomaly Detection
+# Memory Pollution in Multi-Product Visual Anomaly Detection: Diagnosis and Mitigation
 
-Official code for the paper *"Memory Pollution in Multi-Product Anomaly Detection: Diagnosis and Resolution"*.
+[![Paper](https://img.shields.io/badge/Paper-MAKE%202026-1F3864)](https://doi.org/10.3390/make8070219)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+![Python 3.11](https://img.shields.io/badge/Python-3.11-blue)
 
-## Overview
+Official code of the paper
 
-This repository provides the code to reproduce the experiments in the paper.
-We study inter-product interference ("memory pollution") in shared KNN memory
-banks for visual anomaly detection and propose a training-free routing mechanism
-to eliminate it.
+> S. Villanueva López, E. Soria-Olivas, M. Sánchez-Montañés. *Memory Pollution in Multi-Product Visual Anomaly
+> Detection: Diagnosis and Mitigation.* Machine Learning and Knowledge Extraction **8**(7), 219, 2026.
+> [doi:10.3390/make8070219](https://doi.org/10.3390/make8070219)
 
-**Key contributions:**
+Memory-bank detectors such as PatchCore are popular in industrial quality control because they need no training and
+are quick to deploy. A production line usually inspects several products or uses several cameras, and keeping one
+shared nearest-neighbor memory bank for all of them makes deployment simpler. The catch: features from different
+products interfere during retrieval. The paper calls this **memory pollution**, measures it and removes it.
 
-1. Compression benchmark: 16x memory reduction with <1 pp AUROC loss using coreset selection and prototype clustering on frozen DINOv3 features.
-2. Memory pollution diagnosis: per-product oracle allocation underperforms uniform by up to 1.6 pp due to cross-product KNN interference, quantified via Wrong-Neighbor Rate (WNR).
-3. Latent routing: mean-embedding prototype router (0.06 MB overhead, 100% accuracy across 30 products) eliminates pollution and restores oracle behavior.
-4. Allocator robustness: under routing, five allocation strategies converge to within 1 pp, making simple uniform allocation sufficient.
+## Main contributions
+
+1. **Wrong-neighbor rate (WNR)**, a metric of how often a query's nearest neighbor belongs to a different product.
+2. **Oracle inversion**, an effect validated on real benchmarks: under a fixed memory budget, querying only the
+   product's own data can score worse than the shared bank.
+3. **A first-order analytical model of the WNR** that predicts how pollution grows with the number of products and
+   the memory budget.
+4. **A minimal training-free router** (mean-embedding prototypes on frozen DINOv3 features) that removes the effect
+   of memory pollution, with up to 25x memory reduction across datasets and backbones.
 
 ## Requirements
 
@@ -172,14 +181,34 @@ All experiments were run on a single workstation:
 
 ## Citation
 
-```
-@article{villanueva2025memorypollution,
-  title={Memory Pollution in Multi-Product Anomaly Detection: Diagnosis and Resolution},
-  author={Villanueva, Sergio},
-  year={2025}
+```bibtex
+@article{villanueva2026memorypollution,
+  title   = {Memory Pollution in Multi-Product Visual Anomaly Detection: Diagnosis and Mitigation},
+  author  = {Villanueva L{\'o}pez, Sergio and Soria-Olivas, Emilio and S{\'a}nchez-Monta{\~n}{\'e}s, Manuel},
+  journal = {Machine Learning and Knowledge Extraction},
+  volume  = {8},
+  number  = {7},
+  pages   = {219},
+  year    = {2026},
+  doi     = {10.3390/make8070219}
 }
 ```
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details. The datasets keep their own
+licenses.
+
+## Related repositories
+
+This repository is one of five from my industrial PhD on anomaly detection for visual inspection (Universitat de València and Eines Vision Systems, 2026). All five work on frozen foundation-model features and do not train a network for each product.
+
+| Repository | Paper | Question |
+|---|---|---|
+| [rgb-ensembles-industrial-uad](https://github.com/sergiovillanueva/rgb-ensembles-industrial-uad) | Electronics, 2026 | Does combining several detectors improve defect localization on a real automotive benchmark? |
+| [GaLAD_Gaussian_layered_AD](https://github.com/sergiovillanueva/GaLAD_Gaussian_layered_AD) | under review | How do you set up a new product from one to five good images and still find small defects? |
+| **memory-pollution-ad** (this one) | MAKE, 2026 | What goes wrong when many products share one memory bank, and how do you fix it? |
+| [patch-purification-fewshot](https://github.com/sergiovillanueva/patch-purification-fewshot) | Electronics, 2026 | What happens if a defective part slips into the reference images at commissioning? |
+| [pc-reg](https://github.com/sergiovillanueva/pc-reg) | Electronics, 2026 | How do you detect parts that look fine but are missing or in the wrong place? |
+
+Sergio Villanueva López · [LinkedIn](https://www.linkedin.com/in/sergiovillanuevalopez)
